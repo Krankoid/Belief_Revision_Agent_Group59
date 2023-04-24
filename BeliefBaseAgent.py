@@ -90,6 +90,7 @@ class BeliefRevisionAgent:
             clauses = clauses.union(new_clauses)
 
     def _resolve(self, clause1, clause2):
+        
         complementary_literals = set()
         for literal1 in clause1:
             for literal2 in clause2:
