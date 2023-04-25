@@ -58,14 +58,14 @@ class BeliefRevision:
 def test_belief_revision():
     A, B, C, D = symbols('A B C D')
 
-    belief_set = {A & B, B >> C}
+    belief_set = {A, B}
     br = BeliefRevision(belief_set)
 
     # Test 1: Entailment
     assert br.is_entailed(A) == True
 
     # Test 2: Non-entailment
-    assert br.is_entailed(D) == False
+    assert br.is_entailed(C) == False
 
     # Test 3: Entailment with more complex formula
     belief_set_2 = {A | B, ~B}
@@ -77,9 +77,35 @@ def test_belief_revision():
     br3 = BeliefRevision(belief_set_3)
     assert br3.is_entailed(A & C) == False
 
+    # Test 5: Entailment with a more complex belief set
+    belief_set_4 = {A | B, A | ~C, C | D}
+    br4 = BeliefRevision(belief_set_4)
+    assert br4.is_entailed(A | D) == True
+
+    # Test 6: Non-entailment with a more complex belief set
+    belief_set_5 = {A | B, A | ~C, C | D}
+    br5 = BeliefRevision(belief_set_5)
+    assert br5.is_entailed(B & D) == False
+
+    # Test 7: Entailment using implication and equivalence
+    belief_set_6 = {A >> B, A & C}
+    br6 = BeliefRevision(belief_set_6)
+    assert br6.is_entailed(B & C) == True
+
+    # Test 8: Non-entailment using implication and equivalence
+    belief_set_7 = {A >> B, A & ~C}
+    br7 = BeliefRevision(belief_set_7)
+    assert br7.is_entailed(B & C) == False
+
+    # Test 9: Entailment with a more complex formula and belief set
+    belief_set_8 = {A & B, B & C, C & D}
+    br8 = BeliefRevision(belief_set_8)
+    assert br8.is_entailed(A & B & C & D) == True
+
     print("All tests passed!")
 
 test_belief_revision()
+
 
 
 
