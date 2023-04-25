@@ -1,67 +1,85 @@
-from sympy.logic import to_cnf
-from sympy import *
+import itertools
+from sympy import symbols
+from sympy.logic import to_cnf, Not, Or, And, simplify_logic
+
 class BeliefRevision:
+
     def __init__(self, belief_set):
         self.belief_set = belief_set
 
-    def negate_formula(self, formula):
-        return ~formula
-
     def is_entailed(self, formula):
-        cnf_belief_set = [to_cnf(belief) for belief in self.belief_set]
-        cnf_negated_formula = to_cnf(self.negate_formula(formula))
+        return self.resolution(to_cnf(formula))
 
-        return self.resolution(cnf_belief_set, cnf_negated_formula)
+    def resolution(self, formula):
+        clauses = set()
+        for belief in self.belief_set:
+            clauses.update(self._cnf_to_clauses(to_cnf(belief)))
 
-    def resolution(self, cnf_belief_set, cnf_negated_formula):
-        # Add the negation of the formula to the belief set
-        extended_belief_set = cnf_belief_set + [cnf_negated_formula]
+        negated_formula = to_cnf(Not(formula))
+        clauses.update(self._cnf_to_clauses(negated_formula))
 
-        # Resolution algorithm
         while True:
-            new_resolvents = set()
+            new_clauses = set()
+            for c1, c2 in itertools.product(clauses, repeat=2):
+                resolvents = self._resolve(c1, c2)
+                if set() in resolvents:
+                    return True
+                new_clauses.update(resolvents)
 
-            for i, a in enumerate(extended_belief_set):
-                for b in extended_belief_set[i+1:]:
-                    resolvents = self.resolve(a, b)
-                    if resolvents is None:
-                        continue
-
-                    # Empty clause found, return True (entailed)
-                    if resolvents == set():
-                        return True
-
-                    new_resolvents |= resolvents
-
-            if new_resolvents.issubset(extended_belief_set):
+            if new_clauses.issubset(clauses):
                 return False
 
-            extended_belief_set += list(new_resolvents)
+            clauses.update(new_clauses)
 
-    def resolve(self, a, b):
-        for literal_a in a.args:
-            for literal_b in b.args:
-                if literal_a == ~literal_b:
-                    new_clause = a.subs({literal_a: None}) | b.subs({literal_b: None})
-                    return {new_clause}
+    def _cnf_to_clauses(self, cnf):
+        if isinstance(cnf, And):
+            clauses = set()
+            for arg in cnf.args:
+                if isinstance(arg, Or):
+                    clauses.add(frozenset(arg.args))
+                else:
+                    clauses.add(frozenset((arg,)))
+            return clauses
+        elif isinstance(cnf, Or):
+            return {frozenset(cnf.args)}
+        else:
+            return {frozenset((cnf,))}
 
-        return None
+
+    def _resolve(self, c1, c2):
+        resolvents = set()
+        for lit1 in c1:
+            for lit2 in c2:
+                if lit1 == ~lit2:
+                    resolvent = (c1 - {lit1}) | (c2 - {lit2})
+                    resolvents.add(frozenset(resolvent))
+        return resolvents
     
-# Define your symbols (propositional variables)
-A, B, C = symbols('A B C')
+def test_belief_revision():
+    A, B, C, D = symbols('A B C D')
 
-# Define your belief set
-belief_set = {A & B, B >> C}
+    belief_set = {A & B, B >> C}
+    br = BeliefRevision(belief_set)
 
-# Create an instance of the BeliefRevision class with your belief set
-br = BeliefRevision(belief_set)
+    # Test 1: Entailment
+    assert br.is_entailed(A) == True
 
-# Define the formula you want to check for entailment
-formula = A
+    # Test 2: Non-entailment
+    assert br.is_entailed(D) == False
 
-br
+    # Test 3: Entailment with more complex formula
+    belief_set_2 = {A | B, ~B}
+    br2 = BeliefRevision(belief_set_2)
+    assert br2.is_entailed(A) == True
 
-# Check if the formula is entailed by the belief set
-entailment_result = br.is_entailed(formula)
+    # Test 4: Non-entailment with more complex formula
+    belief_set_3 = {A & B, B & ~C}
+    br3 = BeliefRevision(belief_set_3)
+    assert br3.is_entailed(A & C) == False
 
-print(entailment_result)
+    print("All tests passed!")
+
+test_belief_revision()
+
+
+
