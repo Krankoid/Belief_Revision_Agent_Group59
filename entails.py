@@ -1,6 +1,5 @@
 import itertools
-from sympy import symbols
-from sympy.logic import to_cnf, Not, Or, And, simplify_logic
+from sympy.logic import to_cnf, Not, Or, And
 
 def is_entailed(belief_base, formula):
     return resolution(belief_base, to_cnf(formula))

@@ -95,17 +95,4 @@ if __name__ == "__main__":
 
         print("Current belief base:", bb.belief_base, bb.belief_weights)   
 
-#p, q, r = symbols('p q r')
-
-# belief_base = {p, q}
-# belief_weights = {p: 0.8, q: 0.5}
-# bb = BeliefBase(belief_base, belief_weights)
-
-# new_formula = r
-# new_weight = 0.8
-# bb.revise(new_formula, new_weight)
-
-# print("Revised belief base:", bb.belief_base)
-# print("Updated belief weights:", bb.belief_weights)
-
 
