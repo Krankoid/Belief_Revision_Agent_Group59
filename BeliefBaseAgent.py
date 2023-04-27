@@ -37,11 +37,8 @@ class BeliefBase:
         negation = ~formula
         self.contract(negation)
         
-        # Add the new formula to the belief base
-        self.belief_base.add(formula)
-
-        # Update the belief weights
-        self.belief_weights[formula] = weight
+        # Add the new formula and weight to the belief base
+        self.expand(formula, weight)
 
     def _remainder_sets(self, formula):
         remainder_sets = []
