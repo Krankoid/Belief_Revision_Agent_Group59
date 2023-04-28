@@ -1,73 +1,51 @@
-from sympy.logic import to_cnf
-from sympy import *
+import itertools
+from sympy import symbols
+from sympy.logic import to_cnf, Not, Or, And, simplify_logic
 
+def is_entailed(belief_base, formula):
+    return resolution(belief_base, to_cnf(formula))
 
-class BeliefRevision:
-    def __init__(self, belief_set):
-        self.belief_set = {to_cnf(belief) for belief in belief_set}
+def resolution(belief_base, formula):
+    clauses = set()
+    for belief in belief_base:
+        clauses.update(_cnf_to_clauses(to_cnf(belief)))
 
-    def _resolve(self, clause1, clause2):
-        """
-        This function takes two clauses and returns a new clause by applying the resolution rule.
-        """
-        resolved = False
-        new_clause = set(clause1.args).union(set(clause2.args))
-        for literal1 in clause1.args:
-            for literal2 in clause2.args:
-                if literal1 == Not(literal2) or Not(literal1) == literal2:
-                    new_clause.discard(literal1)
-                    new_clause.discard(literal2)
-                    resolved = True
-        return Or(*new_clause) if resolved and new_clause else None
+    negated_formula = to_cnf(Not(formula))
+    clauses.update(_cnf_to_clauses(negated_formula))
 
-    def _apply_resolution(self, clauses):
-        """
-        This function applies the resolution rule to all pairs of clauses in the given set.
-        """
+    while True:
         new_clauses = set()
-        for clause1 in clauses:
-            for clause2 in clauses:
-                if clause1 != clause2:
-                    resolvent = self._resolve(clause1, clause2)
-                    print(resolvent)
-                    if resolvent is not None:
-                        new_clauses.add(resolvent)
-        return new_clauses
-
-    def is_entailed(self, formula):
-        """
-        This function checks if the given formula is entailed by the belief set using the resolution method.
-        """
-        neg_formula = Not(formula)
-        cnf_formula = to_cnf(neg_formula)
-        clauses = self.belief_set.copy()
-        clauses.add(cnf_formula)
-
-        while True:
-            new_clauses = self._apply_resolution(clauses)
-            if len(new_clauses) == 0:
-                return False
-            if any(clause == False or clause == S.false for clause in new_clauses):
+        for c1, c2 in itertools.product(clauses, repeat=2):
+            resolvents = _resolve(c1, c2)
+            if set() in resolvents:
                 return True
-            if new_clauses.issubset(clauses):
-                return False
-            clauses |= new_clauses
+            new_clauses.update(resolvents)
 
-# Define your symbols (propositional variables)
-A, B, C = symbols('A B C')
+        if new_clauses.issubset(clauses):
+            return False
 
-# Define your belief set
-belief_set = {A & B, B >> C}
+        clauses.update(new_clauses)
 
-# Create an instance of the BeliefRevision class with your belief set
-br = BeliefRevision(belief_set)
+def _cnf_to_clauses(cnf):
+    if isinstance(cnf, And):
+        clauses = set()
+        for arg in cnf.args:
+            if isinstance(arg, Or):
+                clauses.add(frozenset(arg.args))
+            else:
+                clauses.add(frozenset((arg,)))
+        return clauses
+    elif isinstance(cnf, Or):
+        return {frozenset(cnf.args)}
+    else:
+        return {frozenset((cnf,))}
 
-# Define the formula you want to check for entailment
-formula = A
 
-br
-
-# Check if the formula is entailed by the belief set
-entailment_result = br.is_entailed(formula)
-
-print(entailment_result)
+def _resolve(c1, c2):
+    resolvents = set()
+    for lit1 in c1:
+        for lit2 in c2:
+            if lit1 == ~lit2:
+                resolvent = (c1 - {lit1}) | (c2 - {lit2})
+                resolvents.add(frozenset(resolvent))
+    return resolvents
