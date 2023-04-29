@@ -2,18 +2,18 @@ import itertools
 from sympy.logic import to_cnf, Not, Or, And
 
 # Better funciton name for code clarity, just applies the resolution alogrithm to the belief base and formula
-def is_entailed(belief_base, formula):
+def isEntailed(belief_base, formula):
     return resolution(belief_base, to_cnf(formula))
 
 # Resoltion algorithm that utilizes the resolve function to find the resolvents of the clauses
 def resolution(belief_base, formula):
     clauses = set()
     for belief in belief_base:
-        clauses.update(cnf_to_clauses(to_cnf(belief)))
+        clauses.update(cnfToClauses(to_cnf(belief)))
 
     # Setting up the negated formula for proof by contradiction
     negated_formula = to_cnf(Not(formula))
-    clauses.update(cnf_to_clauses(negated_formula))
+    clauses.update(cnfToClauses(negated_formula))
 
     while True:
         new_clauses = set()
@@ -41,7 +41,7 @@ def resolve(c1, c2):
     return resolvents
 
 # Converts a CNF formula to a set of clauses again
-def cnf_to_clauses(cnf):
+def cnfToClauses(cnf):
     if isinstance(cnf, And):
         clauses = set()
         for arg in cnf.args:

@@ -1,4 +1,4 @@
-from entails import is_entailed
+from entails import isEntailed
 from sympy import *
 
 class BeliefBase:
@@ -19,14 +19,14 @@ class BeliefBase:
 
     def contract(self, formula):
         # Compute the remainder sets
-        remainder_sets = self.remainder_sets(formula)
+        remainder_sets = self.remainderSets(formula)
 
         # Return early if remainder_sets is empty
         if not remainder_sets:
             return
 
         # Apply the selection function
-        selected_remainders = self.selection_function(remainder_sets)
+        selected_remainders = self.selectionFunction(remainder_sets)
 
         # Contract the belief base
         self.belief_base = set().union(*selected_remainders)
@@ -40,16 +40,16 @@ class BeliefBase:
         # Add the new formula and weight to the belief base
         self.expand(formula, weight)
 
-    def remainder_sets(self, formula):
+    def remainderSets(self, formula):
         remainder_sets = []
         for belief in self.belief_base:
             candidate_remainder = self.belief_base - {belief}
-            if candidate_remainder and not is_entailed(candidate_remainder, formula):
+            if candidate_remainder and not isEntailed(candidate_remainder, formula):
                 remainder_sets.append(candidate_remainder)
         return remainder_sets
 
 
-    def selection_function(self, remainder_sets):
+    def selectionFunction(self, remainder_sets):
         # Weighted selection
         if not remainder_sets:
             return []

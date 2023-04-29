@@ -1,72 +1,8 @@
-from entails import is_entailed
+from entails import isEntailed
 from sympy import *
+from BeliefBaseAgent import *
 
-class BeliefBase:
-    def __init__(self, belief_base=None, belief_weights=None):
-        if belief_base is None:
-            belief_base = set()
-        if belief_weights is None:
-            belief_weights = {}
-        self.belief_base = belief_base
-        self.belief_weights = belief_weights
-
-    def expand(self, formula, weight):
-        # Add the new formula to the belief base
-        self.belief_base.add(formula)
-
-        # Update the belief weights
-        self.belief_weights[formula] = weight
-
-    def contract(self, formula):
-        # Compute the remainder sets
-        remainder_sets = self.remainder_sets(formula)
-
-        # Return early if remainder_sets is empty
-        if not remainder_sets:
-            return
-
-        # Apply the selection function
-        selected_remainders = self.selection_function(remainder_sets)
-
-        # Contract the belief base
-        self.belief_base = set().union(*selected_remainders)
-
-
-    def revise(self, formula, weight):
-        # Contract the belief base with the negation of the formula
-        negation = ~formula
-        self.contract(negation)
-        
-        # Add the new formula to the belief base
-        self.belief_base.add(formula)
-
-        # Update the belief weights
-        self.belief_weights[formula] = weight
-
-    def remainder_sets(self, formula):
-        remainder_sets = []
-        for belief in self.belief_base:
-            candidate_remainder = self.belief_base - {belief}
-            if candidate_remainder and not is_entailed(candidate_remainder, formula):
-                remainder_sets.append(candidate_remainder)
-        return remainder_sets
-
-
-    def selection_function(self, remainder_sets):
-        # Weighted selection
-        if not remainder_sets:
-            return []
-        
-        weights = []
-        for remainder_set in remainder_sets:
-            weights.append(sum([self.belief_weights[belief] for belief in remainder_set]))
-
-        max_weight = max(weights)
-        selected_remainders = [remainder_set for remainder_set, weight in zip(remainder_sets, weights) if weight == max_weight]
-
-        return selected_remainders
-
-def check_agm_postulates():
+def checkAGMpostulates():
     # Define the necessary symbols
     p, q, r = symbols('p q r')
 
@@ -123,4 +59,4 @@ def check_agm_postulates():
     print("Subexpansion:", bb.belief_base)
 
 # Call the function to check the AGM postulates
-check_agm_postulates()
+checkAGMpostulates()
