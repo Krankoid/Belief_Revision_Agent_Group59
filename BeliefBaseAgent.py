@@ -19,14 +19,14 @@ class BeliefBase:
 
     def contract(self, formula):
         # Compute the remainder sets
-        remainder_sets = self._remainder_sets(formula)
+        remainder_sets = self.remainder_sets(formula)
 
         # Return early if remainder_sets is empty
         if not remainder_sets:
             return
 
         # Apply the selection function
-        selected_remainders = self._selection_function(remainder_sets)
+        selected_remainders = self.selection_function(remainder_sets)
 
         # Contract the belief base
         self.belief_base = set().union(*selected_remainders)
@@ -40,7 +40,7 @@ class BeliefBase:
         # Add the new formula and weight to the belief base
         self.expand(formula, weight)
 
-    def _remainder_sets(self, formula):
+    def remainder_sets(self, formula):
         remainder_sets = []
         for belief in self.belief_base:
             candidate_remainder = self.belief_base - {belief}
@@ -48,8 +48,8 @@ class BeliefBase:
                 remainder_sets.append(candidate_remainder)
         return remainder_sets
 
-
-    def _selection_function(self, remainder_sets):
+    
+    def selection_function(self, remainder_sets):
         # Weighted selection
         if not remainder_sets:
             return []
@@ -64,7 +64,7 @@ class BeliefBase:
         return selected_remainders
 
 if __name__ == "__main__":
-    bb = BeliefBase()
+    beliefbaseboi = BeliefBase()
     # Add beliefs, revise and test AGM postulates
     # Add a simple user input
     while True:
@@ -77,19 +77,19 @@ if __name__ == "__main__":
             new_formula = input("Enter the formula: ")
             new_weight = input("Enter formula's weight (0 to 1): ")
 
-            if not bb.belief_base:
-                bb.expand(sympify(new_formula), float(new_weight))
+            if not beliefbaseboi.belief_base:
+                beliefbaseboi.expand(sympify(new_formula), float(new_weight))
             else:
-                bb.revise(sympify(new_formula), float(new_weight))
+                beliefbaseboi.revise(sympify(new_formula), float(new_weight))
 
         elif choice == "2":
             formula = input("Enter the formula: ")
-            bb.contract(sympify(formula))
+            beliefbaseboi.contract(sympify(formula))
         elif choice == "3":
             break
         else:
             print("Invalid choice. Please try again.")
 
-        print("Current belief base:", bb.belief_base, bb.belief_weights)   
+        print("Current belief base:", beliefbaseboi.belief_base, beliefbaseboi.belief_weights)   
 
 
