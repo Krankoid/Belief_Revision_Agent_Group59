@@ -48,7 +48,7 @@ class BeliefBase:
                 remainder_sets.append(candidate_remainder)
         return remainder_sets
 
-    
+
     def selection_function(self, remainder_sets):
         # Weighted selection
         if not remainder_sets:
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     # Add a simple user input
     while True:
         print("1. Expand KB")
-        print("2. Remove belief")
+        print("2. Contract belief")
         print("3. Quit")
         choice = input("Enter your choice: ")
 
